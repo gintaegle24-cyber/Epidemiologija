@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="lv">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Epidemioloģijas izlaušanās spēle</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#fafafa;color:#26323d}
+header{border-top:10px solid #7a123f;padding:24px;max-width:900px;margin:auto}
+h1{color:#7a123f;margin:0}.sub{color:#66717d;margin-top:8px}
+main{max-width:900px;margin:auto;padding:0 20px 50px}
+.bar{position:sticky;top:0;background:white;border:1px solid #ddd;border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;gap:10px;align-items:center;z-index:5}
+.timer{font-size:22px;font-weight:800;color:#7a123f}.card{background:white;border:1px solid #ddd;border-radius:16px;padding:18px;margin-top:18px}
+h2{color:#7a123f;font-size:21px}.ans{display:flex;gap:8px;flex-wrap:wrap}.ans input{flex:1;min-width:200px;padding:10px;border:1px solid #bbb;border-radius:9px;font-size:16px}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer}.p{background:#7a123f;color:white}.s{background:#eee}
+.fb{font-weight:700;margin-top:9px;min-height:22px}.hint{display:none;background:#fff7df;padding:10px;border-radius:9px;margin-top:9px}
+.letter{display:none;background:#f5eaf0;color:#7a123f;font-weight:800;padding:10px;border-radius:9px;margin-top:10px}
+.opts{display:grid;gap:8px}.opts button{text-align:left;background:#f5f6f7}.opts button.ok{background:#e8f5ec}.opts button.no{background:#fdeaea}
+.final{text-align:center;border:2px solid #7a123f}.code{font-size:28px;letter-spacing:5px;color:#7a123f;font-weight:900}
+.win{background:#e8f5ec;padding:16px;border-radius:12px;margin-top:14px}
+</style>
+</head>
+<body>
+<header><h1>Epidemioloģijas laboratorija</h1><div class="sub">15 minūšu izlaušanās spēle par slimību biežuma rādītājiem</div></header>
+<main>
+<div class="bar"><div><div class="timer" id="timer">15:00</div><small>Pavediens = −30 sekundes</small></div><div id="prog">Atvērtas slēdzenes: 0/10</div><button class="p" id="start">Sākt spēli</button></div>
+
+<div class="card" data-a="incidences biežums" data-t="text" data-l="S"><h2>1. Kuru rādītāju var aprēķināt?</h2><p>5 gados pilsētā bija 270 jauni čūlas gadījumi. Vīriešu skaits sākumā 18 500, beigās 21 500.</p><p><b>Kuru slimību biežuma rādītāju no šīs informācijas var aprēķināt?</b></p><div class="ans"><input placeholder="Rādītāja nosaukums"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Padomā par vidējo populāciju un personlaiku.</div><div class="letter">Koda burts: S</div></div>
+
+<div class="card" data-a="2.76" data-t="num" data-l="A"><h2>2. Kumulatīvā incidence</h2><p>4500 dalībnieki, 4 gadi, 124 jauni diabēta gadījumi.</p><p><b>Aprēķini incidences daļu (%), 2 cipari aiz komata.</b></p><div class="ans"><input inputmode="decimal"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Jaunie gadījumi / riska populācija × 100.</div><div class="letter">Koda burts: A</div></div>
+
+<div class="card" data-a="D" data-t="mcq" data-l="U"><h2>3. Interpretācija</h2><p>Incidences daļa ir 2,76%, visi novēroti 4 gadus. Pareizā interpretācija?</p><div class="opts"><button data-c="A">A. 2,76% viena gada laikā</button><button data-c="B">B. Prevalence ir 2,76%</button><button data-c="C">C. 2,76 uz 100 persongadiem</button><button data-c="D">D. Risks ir 2,76% četru gadu laikā</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Incidences daļa vienmēr jāsaista ar konkrēto periodu.</div><div class="letter">Koda burts: U</div></div>
+
+<div class="card" data-a="nav mērvienības" data-t="text" data-l="L"><h2>4. Prevalences mērvienība</h2><p><b>Kāda ir punkta prevalences mērvienība?</b></p><div class="ans"><input><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Tā ir proporcija; bieži izsaka procentos.</div><div class="letter">Koda burts: L</div></div>
+
+<div class="card" data-a="personlaiks" data-t="text" data-l="E"><h2>5. Incidences biežuma saucējs</h2><p><b>Kas ir incidences biežuma saucējā?</b></p><div class="ans"><input><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Saskaita laiku, cik ilgi katrs cilvēks tika novērots.</div><div class="letter">Koda burts: E</div></div>
+
+<div class="card" data-a="0.12" data-t="num" data-l="S"><h2>6. Incidences biežums</h2><p>3 jauni gadījumi, kopējais personlaiks 25 persongadi.</p><p><b>Aprēķini incidences biežumu uz 1 persongadu.</b></p><div class="ans"><input inputmode="decimal"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">3 / 25.</div><div class="letter">Koda burts: S</div></div>
+
+<div class="card" data-a="0.5" data-t="num" data-l="P"><h2>7. Incidences daļa pilsētā</h2><p>20 000 iedzīvotāju, 800 jau slimo ar diabētu, gada laikā 96 jauni gadījumi.</p><p><b>Aprēķini incidences daļu (%).</b></p><div class="ans"><input inputmode="decimal"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Riska populācija ir 20 000 − 800.</div><div class="letter">Koda burts: P</div></div>
+
+<div class="card" data-a="4" data-t="num" data-l="U"><h2>8. Prevalence</h2><p>20 000 iedzīvotāju, 800 cilvēkiem jau ir diabēts.</p><p><b>Aprēķini prevalenci (%).</b></p><div class="ans"><input inputmode="decimal"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">800 / 20 000 × 100.</div><div class="letter">Koda burts: U</div></div>
+
+<div class="card" data-a="0.9" data-t="num" data-l="Ķ"><h2>9. Letalitāte</h2><p>567 176 saslimšanas gadījumi, 5093 mirušie.</p><p><b>Aprēķini letalitāti (%), noapaļo līdz vienam ciparam aiz komata.</b></p><div class="ans"><input inputmode="decimal"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Mirušie / saslimušie × 100.</div><div class="letter">Koda burts: Ķ</div></div>
+
+<div class="card" data-a="3" data-t="num" data-l="E"><h2>10. Dinamiska populācija</h2><p>Gada sākumā 20 000 iedzīvotāju, beigās 24 000, gada laikā 660 jauni gadījumi.</p><p><b>Aprēķini incidences biežumu uz 100 persongadiem, izmantojot vidējo populāciju.</b></p><div class="ans"><input inputmode="decimal"><button class="p chk">Pārbaudīt</button></div><div class="fb"></div><button class="s hbtn">Pavediens</button><div class="hint">Vidējā populācija = 22 000; 660 / 22 000 × 100.</div><div class="letter">Koda burts: E</div></div>
+
+<div class="card final"><h2>Fināla durvis</h2><p>Atver visas slēdzenes un ievadi paroli.</p><div class="code" id="letters">_ _ _ _ _ _ _ _ _ _</div><div class="ans" style="justify-content:center"><input id="pw" placeholder="Parole"><button class="p" id="unlock">Atvērt durvis</button></div><div id="final"></div></div>
+</main>
+<script>
+(()=>{const cards=[...document.querySelectorAll('.card[data-a]')],sol=Array(cards.length).fill(false);let sec=900,started=false,timer;
+const te=document.getElementById('timer'),pr=document.getElementById('prog'),le=document.getElementById('letters');
+function start(){if(started)return;started=true;document.getElementById('start').disabled=true;timer=setInterval(()=>{sec--;let m=Math.floor(Math.max(0,sec)/60),s=Math.max(0,sec)%60;te.textContent=m+':'+String(s).padStart(2,'0');if(sec<=0)clearInterval(timer)},1000)}
+function upd(){pr.textContent='Atvērtas slēdzenes: '+sol.filter(Boolean).length+'/10';le.textContent=cards.map((c,i)=>sol[i]?c.dataset.l:'_').join(' ')}
+function norm(x){return(x||'').trim().toLowerCase().replace(',','.')}
+function okText(a,g){g=norm(g);if(a==='incidences biežums')return['incidences biežums','incidences biezums','incidences blīvums','incidences blivums'].includes(g);if(a==='nav mērvienības')return['nav mērvienības','nav mērvienību','nav','bez mērvienības','proporcija','%','procenti'].includes(g);if(a==='personlaiks')return['personlaiks','personlaiku','persongadi','persongadus'].includes(g);return norm(a)===g}
+cards.forEach((c,i)=>{const fb=c.querySelector('.fb'),letter=c.querySelector('.letter');function solve(){sol[i]=true;fb.textContent='Pareizi!';fb.style.color='#237a3b';letter.style.display='block';upd()}
+const hb=c.querySelector('.hbtn');hb.onclick=()=>{start();c.querySelector('.hint').style.display='block';if(!hb.disabled){sec=Math.max(0,sec-30);hb.disabled=true}};
+if(c.dataset.t==='mcq'){c.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{start();if(sol[i])return;if(b.dataset.c===c.dataset.a){b.classList.add('ok');solve()}else{b.classList.add('no');fb.textContent='Mēģini vēlreiz.';fb.style.color='#b42318'}})}
+else{const inp=c.querySelector('input'),btn=c.querySelector('.chk');const check=()=>{start();if(sol[i])return;let ok=false;if(c.dataset.t==='num'){let n=Number(norm(inp.value));ok=Number.isFinite(n)&&Math.abs(n-Number(c.dataset.a))<0.02}else ok=okText(c.dataset.a,inp.value);if(ok){solve();inp.disabled=true;btn.disabled=true}else{fb.textContent='Nav pareizi. Pārbaudi vēlreiz.';fb.style.color='#b42318'}};btn.onclick=check;inp.onkeydown=e=>{if(e.key==='Enter')check()}}
+});
+document.getElementById('start').onclick=start;document.getElementById('unlock').onclick=()=>{start();const f=document.getElementById('final');if(!sol.every(Boolean))f.innerHTML='<div class="win">Vispirms atver visas 10 slēdzenes.</div>';else if(norm(document.getElementById('pw').value).toUpperCase()==='SAULESPUĶE'){clearInterval(timer);f.innerHTML='<div class="win"><b>MALAČI! 🎉</b><br>Jūs izlauzāties no epidemioloģijas laboratorijas!</div>'}else f.innerHTML='<div class="win">Parole nav pareiza.</div>'};upd()
+})();
+</script>
+</body></html>
