@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Epidemioloģijas izlaušanās spēle</title>
+<style>
+:root{
+  --maroon:#7a123f; --ink:#203040; --muted:#6e7b88; --line:#dfe3e8;
+  --ok:#eaf5ee; --bad:#fff0f0; --accent:#f5eef2; --warn:#fff9e8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:#fafbfc}
+header{border-top:12px solid var(--maroon);padding:28px 20px 10px;max-width:980px;margin:auto}
+h1{margin:0;color:var(--maroon);font-size:clamp(28px,4vw,46px)}
+.subtitle{color:var(--muted);margin-top:8px;font-size:18px}
+main{max-width:980px;margin:auto;padding:12px 20px 60px}
+.topbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 16px;position:sticky;top:0;z-index:10}
+.timer{font-weight:800;font-size:22px;color:var(--maroon)}
+.progress{font-weight:700;color:var(--muted)}
+button{border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{background:var(--maroon);color:#fff}.secondary{background:#eef1f4;color:var(--ink)}
+section.lock{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px}
+.lock h2{margin:0 0 6px;color:var(--maroon);font-size:24px}
+.lock p{line-height:1.5}
+.answer-entry{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.answer-entry label{font-weight:700}
+.answerInput{flex:1;min-width:220px;font-size:18px;padding:12px 14px;border-radius:12px;border:1px solid #cfd5dc}
+.answerInput:focus{outline:3px solid #ead3df;border-color:var(--maroon)}
+.feedback{min-height:26px;margin-top:12px;font-weight:700}
+.hintbox{display:none;background:var(--warn);border:1px solid #eadb9d;border-radius:12px;padding:12px;margin-top:10px}
+.codeletter{display:none;margin-top:14px;background:var(--accent);border:1px solid #e1c9d4;border-radius:14px;padding:12px 14px;font-weight:800;color:var(--maroon);font-size:20px}
+table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid var(--line);padding:8px;text-align:left}th{background:#f4f5f7}
+.final{margin-top:28px;background:#fff;border:2px solid var(--maroon);border-radius:22px;padding:24px;text-align:center}
+.code{font-size:38px;font-weight:900;letter-spacing:6px;color:var(--maroon);margin:14px 0}
+.win{background:var(--ok);border:1px solid #a6cdb3;border-radius:16px;padding:18px;margin-top:16px}.small{font-size:13px;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);margin-top:8px}
+@media(max-width:600px){.code{font-size:28px;letter-spacing:3px}}
+
+.mcq-options{display:grid;gap:10px;margin-top:14px}
+.mcqOption{background:#f7f8fa;border:1px solid var(--line);color:var(--ink);text-align:left}
+.mcqOption:hover{background:#f0f2f5}
+.mcqOption.correct{background:var(--ok);border-color:#a6cdb3}
+.mcqOption.wrong{background:var(--bad);border-color:#e0aaaa}
+.word-bank{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;padding:16px;background:#f7f8fa;border:1px dashed #cfd5dc;border-radius:14px;min-height:76px}
+.wordBlock{background:#fff;border:1px solid #cfd5dc;color:var(--ink);cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.04)}
+.wordBlock:hover{background:#f3e8ee;border-color:#c79bad}
+.wordBlock.used{display:none}
+.chosen-wrap{margin-top:14px}
+.chosen-title{font-weight:700;margin-bottom:8px;color:var(--muted)}
+.chosen-bank{display:flex;flex-wrap:wrap;gap:10px;min-height:64px;padding:14px;background:#fff;border:2px solid #ead3df;border-radius:14px}
+.chosen-chip{background:var(--accent);border:1px solid #d8b8c7;color:var(--maroon);padding:10px 12px;border-radius:10px;font-weight:700}
+.order-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+
+.final-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.final-controls input{font-size:20px;padding:12px 14px;border-radius:12px;border:1px solid #cfd5dc;width:min(320px,100%);text-transform:uppercase}
+.door-scene{margin:24px auto 6px;width:min(420px,92%);perspective:1000px}
+.door-frame{
+  position:relative;height:260px;border:12px solid #4d2637;border-bottom-width:16px;
+  border-radius:14px 14px 6px 6px;overflow:hidden;background:#f2e8ed;
+  box-shadow:0 14px 30px rgba(0,0,0,.16);
+}
+.door-inside{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;background:linear-gradient(180deg,#f5eef2,#fff);z-index:1;
+}
+.success-badge{
+  width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:#eaf5ee;border:2px solid #9fc7ad;font-size:38px;font-weight:900;color:#237a3b;margin-bottom:10px
+}
+.success-title{font-size:36px;font-weight:900;color:var(--maroon);letter-spacing:2px}
+.success-text{font-size:18px;font-weight:700;line-height:1.35;margin-top:8px;max-width:300px}
+.door{
+  position:absolute;top:0;bottom:0;width:50%;z-index:3;
+  background:linear-gradient(90deg,#7a123f,#8f1b4c 55%,#6f1039);
+  transition:transform 1.25s cubic-bezier(.2,.75,.15,1);
+  transform-style:preserve-3d;
+}
+.door-left{left:0;transform-origin:left center;border-right:2px solid rgba(255,255,255,.16)}
+.door-right{right:0;transform-origin:right center;border-left:2px solid rgba(0,0,0,.18)}
+.door-panel{
+  position:absolute;left:16%;right:16%;top:14%;bottom:14%;
+  border:4px solid rgba(255,255,255,.17);border-radius:8px;
+  box-shadow:inset 0 0 0 3px rgba(0,0,0,.08)
+}
+.handle{
+  position:absolute;top:50%;width:16px;height:16px;border-radius:50%;
+  background:#d9b769;border:2px solid rgba(0,0,0,.2);
+  box-shadow:0 1px 5px rgba(0,0,0,.35)
+}
+.handle-left{right:12px}.handle-right{left:12px}
+.door-frame.open .door-left{transform:rotateY(-105deg)}
+.door-frame.open .door-right{transform:rotateY(105deg)}
+.door-frame.open{box-shadow:0 18px 40px rgba(0,0,0,.2),0 0 0 5px rgba(122,18,63,.08)}
+.door-scene.celebrate{animation:celebrate .7s ease-out 1}
+@keyframes celebrate{
+  0%{transform:scale(1)}
+  45%{transform:scale(1.035)}
+  100%{transform:scale(1)}
+}
+.confetti{
+  position:fixed;top:-20px;width:9px;height:14px;border-radius:2px;z-index:9999;
+  animation:fall 2.4s linear forwards;pointer-events:none
+}
+@keyframes fall{
+  to{transform:translate(var(--drift),110vh) rotate(720deg);opacity:.9}
+}
+
+</style>
+</head>
+<body>
+<header>
+<h1>Epidemioloģijas laboratorija</h1>
+<div class="subtitle">15 minūšu izlaušanās spēle par slimību biežuma rādītājiem</div>
+</header>
+<main>
+
+<div class="topbar">
+<div><div class="timer" id="timer">15:00</div><div class="small">Pavediens = −30 sekundes</div></div>
+<div class="progress" id="progress">Atvērtas slēdzenes: 0/10</div>
+<button class="primary" id="startBtn">Sākt spēli</button>
+</div>
+
+<section class="lock" data-answer="incidences biežums" data-type="text" data-letter="S">
+<h2>1. slēdzene — Kuru rādītāju vispār var aprēķināt?</h2>
+<p>Piecu gadu laikā pilsētas vīriešu populācijā bija <b>270 jauni divpadsmitpirkstu zarnas čūlas slimības gadījumi</b>. Vīriešu skaits perioda sākumā bija <b>18 500</b>, bet perioda beigās — <b>21 500</b>.</p>
+<p><b>Kuru slimību biežuma rādītāju no šīs informācijas var aprēķināt?</b></p>
+<div class="answer-entry"><label>Atbilde:</label><input class="answerInput" placeholder="Ieraksti rādītāja nosaukumu"><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Tev nav precīzas riska populācijas perioda sākumā bez slimības, bet ir populācijas lielums perioda sākumā un beigās. Padomā par vidējo populāciju un personlaiku.</div>
+<div class="codeletter">Koda burts: S</div>
+</section>
+
+<section class="lock" data-answer="2.76" data-type="number" data-letter="A">
+<h2>2. slēdzene — Kumulatīvā incidence</h2>
+<p>Pētījumā iekļauti <b>4500 dalībnieki</b> ar augstu 2. tipa cukura diabēta risku. Viņus pilnīgi novēroja <b>4 gadus</b>. Līdz pētījuma beigām 2. tipa cukura diabēts tika diagnosticēts <b>124 indivīdiem</b>.</p>
+<p><b>Aprēķini incidences daļu (%). Atbildi norādi ar diviem cipariem aiz komata.</b></p>
+<div class="answer-entry"><label>Atbilde (%):</label><input class="answerInput" inputmode="decimal" placeholder=""><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Jaunie gadījumi / riska populācija perioda sākumā × 100.</div>
+<div class="codeletter">Koda burts: A</div>
+</section>
+
+<section class="lock mcq-lock" data-answer="D" data-type="mcq" data-letter="U">
+<h2>3. slēdzene — Kā interpretēt incidences daļu?</h2>
+<p>Iepriekšējā uzdevumā incidences daļa ir <b>2,76%</b>, un visi 4500 dalībnieki tika novēroti <b>4 gadus</b>.</p>
+<p><b>Kura interpretācija ir pareiza?</b></p>
+<div class="mcq-options">
+  <button class="mcqOption" data-choice="A">A. 2. tipa cukura diabēta risks ir 2,76% viena gada laikā</button>
+  <button class="mcqOption" data-choice="B">B. 2. tipa cukura diabēta prevalence ir 2,76%</button>
+  <button class="mcqOption" data-choice="C">C. Saslimstības biežums ir 2,76 gadījumi uz 100 persongadiem</button>
+  <button class="mcqOption" data-choice="D">D. 2. tipa cukura diabēta risks ir 2,76% četru gadu laikā</button>
+</div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Incidences daļa raksturo risku noteiktā novērošanas periodā.</div>
+<div class="codeletter">Koda burts: U</div>
+</section>
+
+<section class="lock" data-answer="nav mērvienības" data-type="text" data-letter="L">
+<h2>4. slēdzene — Mērvienības</h2>
+<p><b>Kāda ir punkta prevalences mērvienība?</b></p>
+<div class="answer-entry"><label>Atbilde:</label><input class="answerInput" placeholder="Ieraksti mērvienību"><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Prevalence ir proporcija jeb populācijas daļa.</div>
+<div class="codeletter">Koda burts: L</div>
+</section>
+
+<section class="lock" data-answer="personlaiks" data-type="text" data-letter="E">
+<h2>5. slēdzene — Kas incidences biežumam ir saucējā?</h2>
+<p><b>Kādu lielumu izmanto incidences biežuma saucējā?</b></p>
+<div class="answer-entry"><label>Atbilde:</label><input class="answerInput" placeholder="Ieraksti vienu jēdzienu"><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Tas apvieno cilvēku skaitu un laiku, ko viņi pavadīja riskā.</div>
+<div class="codeletter">Koda burts: E</div>
+</section>
+
+<section class="lock" data-answer="6" data-type="number" data-letter="S">
+<h2>6. slēdzene — Incidences biežums</h2>
+<table>
+<tr><th>Persona</th><th>Riska personlaiks</th></tr>
+<tr><td>A</td><td>12 mēneši</td></tr>
+<tr><td>B</td><td>8 mēneši → saslimst</td></tr>
+<tr><td>C</td><td>12 mēneši</td></tr>
+<tr><td>D</td><td>3 mēneši → saslimst</td></tr>
+<tr><td>E</td><td>10 mēneši → pazūd no novērošanas</td></tr>
+<tr><td>F</td><td>5 mēneši → saslimst</td></tr>
+</table>
+<p><b>Kāds ir incidences biežums uz 100 persongmēnešiem?</b></p>
+<p><b>Atbildi norādi kā gadījumu skaitu uz 100 persongmēnešiem, bez mērvienības.</b></p>
+<div class="answer-entry"><label>Atbilde:</label><input class="answerInput" inputmode="decimal" placeholder=""><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Kopējais personlaiks = 12 + 8 + 12 + 3 + 10 + 5. Skaitītājā ir jaunie gadījumi.</div>
+<div class="codeletter">Koda burts: S</div>
+</section>
+
+<section class="lock order-lock" data-answer="lai|izlīdzinātu|populāciju|vecuma struktūras|atšķirības|un varētu tās salīdzināt" data-type="order" data-letter="P">
+<h2>7. slēdzene — Vecumstandartizēts rādītājs</h2>
+<p>Divām pilsētām vecuma struktūra būtiski atšķiras.</p>
+<p><b>Uzklikšķini uz klucīšiem pareizā secībā, lai izveidotu teikumu par vecumstandartizēta rādītāja mērķi.</b></p>
+
+<div class="word-bank source-bank">
+  <button class="wordBlock">populāciju</button>
+  <button class="wordBlock">un varētu tās salīdzināt</button>
+  <button class="wordBlock">atšķirības</button>
+  <button class="wordBlock">lai</button>
+  <button class="wordBlock">vecuma struktūras</button>
+  <button class="wordBlock">izlīdzinātu</button>
+</div>
+
+<div class="chosen-wrap">
+  <div class="chosen-title">Tavs teikums:</div>
+  <div class="chosen-bank"></div>
+</div>
+
+<div class="order-actions">
+  <button class="secondary undoOrderBtn">Atcelt pēdējo</button>
+  <button class="secondary resetOrderBtn">Sākt no jauna</button>
+  <button class="primary checkOrderBtn">Pārbaudīt secību</button>
+</div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Vispirms padomā, ko standartizācija dara ar vecuma struktūras atšķirībām, un tikai tad — kāpēc tas ir vajadzīgs.</div>
+<div class="codeletter">Koda burts: P</div>
+</section>
+
+<section class="lock" data-answer="15" data-type="number" data-letter="U">
+<h2>8. slēdzene — Letalitāte</h2>
+<p>Uzliesmojuma laikā slimību X apstiprina <b>80 cilvēkiem</b>. 30 dienu laikā <b>12 cilvēki nomirst no slimības X</b>, bet vēl <b>3 saslimušie nomirst citu iemeslu dēļ</b>.</p>
+<p><b>Kāda ir slimības X letalitāte (%)?</b></p>
+<div class="answer-entry"><label>Atbilde (%):</label><input class="answerInput" inputmode="decimal" placeholder=""><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Skaitītājā liec tikai tos, kuri nomira no konkrētās slimības.</div>
+<div class="codeletter">Koda burts: U</div>
+</section>
+
+
+<section class="lock" data-answer="16.67" data-type="number" data-letter="Ķ">
+<h2>9. slēdzene — Punkta prevalence</h2>
+<p>1. oktobrī universitātes studentu veselības pārbaudē piedalījās <b>720 studenti</b>. Tajā dienā <b>120 studentiem</b> bija diagnosticēta sezonāla alerģija.</p>
+<p><b>Aprēķini alerģijas punkta prevalenci (%). Atbildi norādi ar diviem cipariem aiz komata.</b></p>
+<div class="answer-entry"><label>Atbilde (%):</label><input class="answerInput" inputmode="decimal" placeholder=""><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Punkta prevalence = visi esošie gadījumi konkrētajā laika punktā / visa populācija tajā pašā laika punktā × 100.</div>
+<div class="codeletter">Koda burts: Ķ</div>
+</section>
+
+<section class="lock" data-answer="3" data-type="number" data-letter="E">
+<h2>10. slēdzene — Incidences biežums dinamiskā populācijā</h2>
+<p>Pilsētā gada sākumā dzīvoja <b>20 000 cilvēku</b>, bet gada beigās — <b>24 000 cilvēku</b>. Gada laikā tika reģistrēti <b>660 jauni slimības X gadījumi</b>.</p>
+<p>Pieņem, ka gada vidējo riska populāciju var aprēķināt kā perioda sākuma un beigu populācijas vidējo lielumu.</p>
+<p><b>Aprēķini incidences biežumu uz 100 person-gadiem. Atbildi norādi ar vienu ciparu aiz komata.</b></p>
+<div class="answer-entry"><label>Atbilde:</label><input class="answerInput" inputmode="decimal" placeholder=""><button class="primary checkBtn">Pārbaudīt</button></div>
+<div class="feedback"></div><button class="secondary hintBtn">Parādīt pavedienu</button>
+<div class="hintbox">Vispirms aprēķini gada vidējo populāciju. Tad jaunie gadījumi / personlaiks × 100.</div>
+<div class="codeletter">Koda burts: E</div>
+</section>
+
+<section class="final">
+<h2>Fināla durvis</h2>
+<p>Atver visas 10 slēdzenes un saliec iegūtos burtus pareizā secībā.</p>
+<div class="code" id="letters">_ _ _ _ _ _ _ _ _ _</div>
+<div class="note">Saliec iegūtos burtus tādā secībā, kādā atvēri slēdzenes.</div>
+
+<div class="door-scene" id="doorScene" aria-label="Aizvērtas durvis">
+  <div class="door-frame">
+    <div class="door door-left">
+      <div class="door-panel"></div>
+      <div class="handle handle-left"></div>
+    </div>
+    <div class="door door-right">
+      <div class="door-panel"></div>
+      <div class="handle handle-right"></div>
+    </div>
+    <div class="door-inside">
+      <div class="success-badge">✓</div>
+      <div class="success-title">MALAČI!</div>
+      <div class="success-text">Jūs izlauzāties no epidemioloģijas laboratorijas!</div>
+    </div>
+  </div>
+</div>
+
+<div class="final-controls">
+  <input id="password" type="text" placeholder="Ievadi paroli" autocomplete="off">
+  <button class="primary" id="unlockBtn">Atvērt durvis</button>
+</div>
+<div id="finalMsg"></div>
+</section>
+
+</main>
+
+<script>
+(() => {
+const startBtn=document.getElementById('startBtn'),timerEl=document.getElementById('timer'),progressEl=document.getElementById('progress'),lettersEl=document.getElementById('letters'),unlockBtn=document.getElementById('unlockBtn'),password=document.getElementById('password'),finalMsg=document.getElementById('finalMsg'),locks=[...document.querySelectorAll('.lock')];
+let seconds=900,started=false,ended=false,interval=null,solved=Array(locks.length).fill(false),hintUsed=Array(locks.length).fill(false);
+
+function renderTimer(){
+  const s=Math.max(0,seconds),m=Math.floor(s/60),r=s%60;
+  timerEl.textContent=`${m}:${String(r).padStart(2,'0')}`;
+  if(s<=60)timerEl.style.color='#b42318';
+}
+function start(){
+  if(started)return;
+  started=true; startBtn.textContent='Spēle sākta'; startBtn.disabled=true;
+  interval=setInterval(()=>{
+    if(ended)return;
+    seconds--; renderTimer();
+    if(seconds<=0){
+      clearInterval(interval); ended=true;
+      finalMsg.innerHTML='<div class="win" style="background:#fff0f0;border-color:#e0aaaa"><b>Laiks beidzies.</b> Jūs vēl varat pabeigt uzdevumus.</div>';
+    }
+  },1000);
+}
+function updateProgress(){
+  const count=solved.filter(Boolean).length;
+  progressEl.textContent=`Atvērtas slēdzenes: ${count}/10`;
+  lettersEl.textContent=locks.map((l,i)=>solved[i]?l.dataset.letter:'_').join(' ');
+}
+function parseNum(s){
+  const cleaned=(s||'').trim().replace(',','.').replace(/[^0-9.-]/g,'');
+  const n=Number(cleaned);
+  return Number.isFinite(n)?n:null;
+}
+function norm(s){
+  return (s||'').trim().toLowerCase()
+    .replace(/[.,;:!?]+$/g,'')
+    .replace(/\s+/g,' ');
+}
+function textOk(answer, got){
+  const a=norm(answer), g=norm(got);
+  if(a==='incidences biežums'){
+    return ['incidences biežums','incidences blīvums','incidences biezums','incidences blivums'].includes(g);
+  }
+  if(a==='četru gadu laikā'){
+    return ['četru gadu laikā','4 gadu laikā','4 gadi','četros gados','4 gados'].includes(g);
+  }
+  if(a==='nav mērvienības'){
+    return ['nav mērvienības','nav mērvienibu','nav mērvienību','nav','bez mērvienības','bez mērvienibu','proporcija','%','procents','procenti'].includes(g);
+  }
+  if(a==='personlaiks'){
+    return ['personlaiks','personlaiku','personlaikā','personlaika','person-years','person months','persongadi','persongadus','persongmēneši','persongmenesi'].includes(g);
+  }
+  if(a==='salīdzināšanai'){
+    const keys=['salīdzin','salidzin','vecuma atšķir','vecuma atsķir','vecuma struktūr','vecuma struktur','izlīdzin','izlidzin'];
+    return keys.some(k=>g.includes(k));
+  }
+  return g===a;
+}
+
+locks.forEach((lock,idx)=>{
+  const feedback=lock.querySelector('.feedback');
+  const letterBox=lock.querySelector('.codeletter');
+
+  function solve(){
+    feedback.textContent='Pareizi — slēdzene atvērta!';
+    feedback.style.color='#237a3b';
+    solved[idx]=true;
+    letterBox.style.display='block';
+    updateProgress();
+  }
+
+  if(lock.dataset.type==='number' || lock.dataset.type==='text'){
+    const input=lock.querySelector('.answerInput');
+    const checkBtn=lock.querySelector('.checkBtn');
+
+    function check(){
+      if(!started)start();
+      if(solved[idx])return;
+      if(!input.value.trim()){
+        feedback.textContent='Ieraksti atbildi.';
+        feedback.style.color='#b42318';
+        return;
+      }
+      let ok=false;
+      if(lock.dataset.type==='number'){
+        const got=parseNum(input.value),want=Number(lock.dataset.answer);
+        ok=got!==null&&Math.abs(got-want)<0.02;
+      }else{
+        ok=textOk(lock.dataset.answer,input.value);
+      }
+      if(ok){
+        solve();
+        input.disabled=true;
+        checkBtn.disabled=true;
+      }else{
+        feedback.textContent='Nav pareizi. Pārbaudi aprēķinu vai formulējumu un mēģini vēlreiz.';
+        feedback.style.color='#b42318';
+        input.select();
+      }
+    }
+
+    checkBtn.addEventListener('click',check);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+  }
+
+  if(lock.dataset.type==='mcq'){
+    const options=[...lock.querySelectorAll('.mcqOption')];
+    options.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(!started)start();
+        if(solved[idx])return;
+        options.forEach(o=>o.classList.remove('wrong','correct'));
+        if(btn.dataset.choice===lock.dataset.answer){
+          btn.classList.add('correct');
+          options.forEach(o=>o.disabled=true);
+          solve();
+        }else{
+          btn.classList.add('wrong');
+          feedback.textContent='Nav pareizi. Padomā, ko tieši raksturo incidences daļa.';
+          feedback.style.color='#b42318';
+        }
+      });
+    });
+  }
+
+  if(lock.dataset.type==='order'){
+    const source=lock.querySelector('.source-bank');
+    const chosen=lock.querySelector('.chosen-bank');
+    const checkBtn=lock.querySelector('.checkOrderBtn');
+    const resetBtn=lock.querySelector('.resetOrderBtn');
+    const undoBtn=lock.querySelector('.undoOrderBtn');
+    const blocks=[...source.querySelectorAll('.wordBlock')];
+    let sequence=[];
+
+    function renderChosen(){
+      chosen.innerHTML='';
+      sequence.forEach(item=>{
+        const chip=document.createElement('span');
+        chip.className='chosen-chip';
+        chip.textContent=item.text;
+        chosen.appendChild(chip);
+      });
+    }
+
+    blocks.forEach((block,i)=>{
+      block.dataset.index=String(i);
+      block.addEventListener('click',()=>{
+        if(!started)start();
+        if(solved[idx] || block.classList.contains('used'))return;
+        sequence.push({index:i,text:block.textContent.trim()});
+        block.classList.add('used');
+        renderChosen();
+        feedback.textContent='';
+      });
+    });
+
+    undoBtn.addEventListener('click',()=>{
+      if(!started)start();
+      if(solved[idx] || sequence.length===0)return;
+      const last=sequence.pop();
+      blocks[last.index].classList.remove('used');
+      renderChosen();
+      feedback.textContent='';
+    });
+
+    resetBtn.addEventListener('click',()=>{
+      if(!started)start();
+      if(solved[idx])return;
+      sequence=[];
+      blocks.forEach(b=>b.classList.remove('used'));
+      renderChosen();
+      feedback.textContent='';
+    });
+
+    checkBtn.addEventListener('click',()=>{
+      if(!started)start();
+      if(solved[idx])return;
+      const current=sequence.map(x=>x.text).join('|');
+      if(current===lock.dataset.answer){
+        solve();
+        checkBtn.disabled=true;
+        resetBtn.disabled=true;
+        undoBtn.disabled=true;
+        blocks.forEach(b=>b.disabled=true);
+      }else{
+        feedback.textContent='Secība vēl nav pareiza. Pamēģini vēlreiz.';
+        feedback.style.color='#b42318';
+      }
+    });
+
+    renderChosen();
+  }
+
+  const hintBtn=lock.querySelector('.hintBtn'),hintBox=lock.querySelector('.hintbox');
+  hintBtn.addEventListener('click',()=>{
+    if(!started)start();
+    hintBox.style.display='block';
+    if(!hintUsed[idx]){
+      seconds=Math.max(0,seconds-30);
+      hintUsed[idx]=true;
+      hintBtn.textContent='Pavediens izmantots (−30 s)';
+      hintBtn.disabled=true;
+      renderTimer();
+    }
+  });
+});
+unlockBtn.addEventListener('click',()=>{
+  if(!started)start();
+  const val=password.value.trim().toUpperCase();
+  if(solved.every(Boolean)&&val==='SAULESPUĶE'){
+    ended=true; clearInterval(interval);
+    const scene=document.getElementById('doorScene');
+    const frame=scene.querySelector('.door-frame');
+    frame.classList.add('open');
+    scene.classList.add('celebrate');
+    password.disabled=true;
+    unlockBtn.disabled=true;
+    unlockBtn.textContent='Durvis atvērtas!';
+    finalMsg.innerHTML=`<div class="win"><b>Malači! 🎉</b><br>Jūs izlauzāties ar ${timerEl.textContent} atlikušā laika.</div>`;
+
+    const confettiColors=['#7a123f','#d9b769','#237a3b','#8f1b4c','#f0c95d'];
+    for(let i=0;i<55;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=Math.random()*100+'vw';
+      c.style.background=confettiColors[Math.floor(Math.random()*confettiColors.length)];
+      c.style.animationDelay=(Math.random()*0.7)+'s';
+      c.style.setProperty('--drift',((Math.random()*240)-120)+'px');
+      c.style.transform=`rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(),3400);
+    }
+  }else if(!solved.every(Boolean)){
+    finalMsg.innerHTML='<div class="win" style="background:#fff9e8;border-color:#eadb9d">Vispirms jāatver visas 8 slēdzenes.</div>';
+  }else{
+    finalMsg.innerHTML='<div class="win" style="background:#fff0f0;border-color:#e0aaaa">Parole nav pareiza.</div>';
+  }
+});
+password.addEventListener('keydown',e=>{if(e.key==='Enter')unlockBtn.click()});
+startBtn.addEventListener('click',start);
+renderTimer(); updateProgress();
+})();
+</script>
+</body>
+</html>
